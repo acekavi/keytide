@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 
-	"github.com/acekavi/keytide/internal/models"
+	"keytide/internal/models"
 )
 
 // ProductRepository defines methods for product data access

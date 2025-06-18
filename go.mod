@@ -1,3 +1,3 @@
-module github.com/acekavi/keytide
+module keytide
 
 go 1.24.4

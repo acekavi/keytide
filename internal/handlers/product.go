@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/acekavi/keytide/internal/models"
+	"keytide/internal/models"
 )
 
 // GetProducts returns all products
