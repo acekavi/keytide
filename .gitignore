@@ -30,3 +30,23 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+
+# Binaries
+/bin/
+/tmp/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Air temporary files
+.air.toml.tmp
+
+# Log files
+*.log
+
+# Environment variables
+.env.local

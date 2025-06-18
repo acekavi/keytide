@@ -1,0 +1,15 @@
+FROM golang:1.22.3-alpine
+
+# Update Alpine packages to reduce vulnerabilities
+RUN apk update && apk upgrade --no-cache
+
+WORKDIR /app
+
+RUN go install github.com/cosmtrek/air@latest
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+CMD ["air", "-c", ".air.toml"]
