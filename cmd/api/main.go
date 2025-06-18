@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"keytide/internal/handlers"
-	"keytide/internal/server"
+	"github.com/acekavi/keytide/internal/handlers"
+	"github.com/acekavi/keytide/internal/server"
 )
 
 func main() {

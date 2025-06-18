@@ -3,7 +3,7 @@ package repository
 import (
 	"testing"
 
-	"keytide/internal/models"
+	"github.com/acekavi/keytide/internal/models"
 )
 
 func TestInMemoryProductRepository_GetAll(t *testing.T) {
