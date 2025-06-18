@@ -1,4 +1,4 @@
-## 🔐 Project Name: Keytide (or any name you choose)
+## 🔐 Project Name: Keytide
 
 ### Description:
 
