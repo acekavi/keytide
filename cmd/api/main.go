@@ -1,25 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
+	"os"
+	"path/filepath"
 
-	"github.com/acekavi/keytide/internal/handlers"
-	"github.com/acekavi/keytide/internal/server"
+	"github.com/acekavi/keytide/internal/database"
+	"github.com/acekavi/keytide/pkg/logger"
+	"go.uber.org/zap"
 )
 
 func main() {
-    // Initialize the server
-    s := server.NewServer()
-    
-    // Register routes
-    s.Router.HandleFunc("/products", handlers.GetProducts)
-    
-    // Start server
-    port := "8080"
-    fmt.Printf("Server starting on port %s...\n", port)
-    if err := http.ListenAndServe(":"+port, s.Router); err != nil {
-        log.Fatal(err)
+    // Initialize logger
+    env := os.Getenv("GO_ENV")
+    if env == "" {
+        env = "development"
     }
+    logger.Initialize(env)
+    defer logger.GetLogger().Sync()
+    
+    logger.Info("Starting application", zap.String("environment", env))
+    
+    // Initialize database
+    dbPath := filepath.Join("data", "keytide.db")
+    db, err := database.NewSQLiteDB(dbPath)
+    if err != nil {
+        logger.Fatal("Failed to initialize database", zap.Error(err))
+    }
+    defer db.Close()
+    logger.Info("Database connected successfully", zap.String("path", dbPath))
+    
+    // Rest of your main function...
 }

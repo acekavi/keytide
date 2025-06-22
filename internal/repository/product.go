@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/acekavi/keytide/internal/models"
@@ -15,62 +17,105 @@ type ProductRepository interface {
     Delete(id string) error
 }
 
-// InMemoryProductRepository implements ProductRepository with an in-memory data store
-type InMemoryProductRepository struct {
-    products map[string]models.Product
+// DBProductRepository implements ProductRepository with a database
+type DBProductRepository struct {
+    db *sql.DB
 }
 
-// NewInMemoryProductRepository creates a new in-memory product repository
-func NewInMemoryProductRepository() *InMemoryProductRepository {
-    return &InMemoryProductRepository{
-        products: map[string]models.Product{
-            "1": {ID: "1", Name: "Laptop", Price: 999.99},
-            "2": {ID: "2", Name: "Headphones", Price: 99.99},
-        },
+// NewDBProductRepository creates a new database product repository
+func NewDBProductRepository(db *sql.DB) *DBProductRepository {
+    return &DBProductRepository{
+        db: db,
     }
 }
 
 // GetAll returns all products
-func (r *InMemoryProductRepository) GetAll() ([]models.Product, error) {
-    products := make([]models.Product, 0, len(r.products))
-    for _, product := range r.products {
-        products = append(products, product)
+func (r *DBProductRepository) GetAll() ([]models.Product, error) {
+    rows, err := r.db.Query("SELECT id, name, price FROM products")
+    if err != nil {
+        return nil, fmt.Errorf("failed to query products: %w", err)
     }
+    defer rows.Close()
+
+    var products []models.Product
+    for rows.Next() {
+        var p models.Product
+        if err := rows.Scan(&p.ID, &p.Name, &p.Price); err != nil {
+            return nil, fmt.Errorf("failed to scan product: %w", err)
+        }
+        products = append(products, p)
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, fmt.Errorf("error iterating products: %w", err)
+    }
+
     return products, nil
 }
 
 // GetByID returns a product by ID
-func (r *InMemoryProductRepository) GetByID(id string) (models.Product, error) {
-    product, exists := r.products[id]
-    if !exists {
-        return models.Product{}, fmt.Errorf("product with ID %s not found", id)
+func (r *DBProductRepository) GetByID(id string) (models.Product, error) {
+    var p models.Product
+    err := r.db.QueryRow("SELECT id, name, price FROM products WHERE id = ?", id).
+        Scan(&p.ID, &p.Name, &p.Price)
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return models.Product{}, fmt.Errorf("product with ID %s not found", id)
+        }
+        return models.Product{}, fmt.Errorf("failed to query product: %w", err)
     }
-    return product, nil
+    return p, nil
 }
 
 // Create adds a new product
-func (r *InMemoryProductRepository) Create(product models.Product) error {
-    if _, exists := r.products[product.ID]; exists {
-        return fmt.Errorf("product with ID %s already exists", product.ID)
+func (r *DBProductRepository) Create(product models.Product) error {
+    _, err := r.db.Exec(
+        "INSERT INTO products (id, name, price) VALUES (?, ?, ?)",
+        product.ID, product.Name, product.Price,
+    )
+    if err != nil {
+        return fmt.Errorf("failed to create product: %w", err)
     }
-    r.products[product.ID] = product
     return nil
 }
 
 // Update modifies an existing product
-func (r *InMemoryProductRepository) Update(product models.Product) error {
-    if _, exists := r.products[product.ID]; !exists {
+func (r *DBProductRepository) Update(product models.Product) error {
+    result, err := r.db.Exec(
+        "UPDATE products SET name = ?, price = ? WHERE id = ?",
+        product.Name, product.Price, product.ID,
+    )
+    if err != nil {
+        return fmt.Errorf("failed to update product: %w", err)
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("failed to get rows affected: %w", err)
+    }
+
+    if rowsAffected == 0 {
         return fmt.Errorf("product with ID %s not found", product.ID)
     }
-    r.products[product.ID] = product
+
     return nil
 }
 
 // Delete removes a product
-func (r *InMemoryProductRepository) Delete(id string) error {
-    if _, exists := r.products[id]; !exists {
+func (r *DBProductRepository) Delete(id string) error {
+    result, err := r.db.Exec("DELETE FROM products WHERE id = ?", id)
+    if err != nil {
+        return fmt.Errorf("failed to delete product: %w", err)
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("failed to get rows affected: %w", err)
+    }
+
+    if rowsAffected == 0 {
         return fmt.Errorf("product with ID %s not found", id)
     }
-    delete(r.products, id)
+
     return nil
 }

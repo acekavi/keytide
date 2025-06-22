@@ -1,14 +1,56 @@
 package repository
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/acekavi/keytide/internal/models"
+	_ "github.com/mattn/go-sqlite3" // Import sqlite driver
 )
 
-func TestInMemoryProductRepository_GetAll(t *testing.T) {
-    // Create a new repository with some initial data
-    repo := NewInMemoryProductRepository()
+func setupTestDB(t *testing.T) (*sql.DB, func()) {
+    db, err := sql.Open("sqlite3", ":memory:")
+    if err != nil {
+        t.Fatalf("failed to open test db: %v", err)
+    }
+    
+    // Create the products table
+    _, err = db.Exec(`CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        price REAL NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`)
+    if err != nil {
+        db.Close()
+        t.Fatalf("failed to create products table: %v", err)
+    }
+    
+    // Insert test data
+    _, err = db.Exec(`INSERT INTO products (id, name, price) VALUES 
+        ('1', 'Laptop', 999.99),
+        ('2', 'Headphones', 99.99)`)
+    if err != nil {
+        db.Close()
+        t.Fatalf("Failed to insert initial data: %v", err)
+    }
+    
+    // Return teardown function
+    teardown := func() {
+        db.Close()
+    }
+    
+    return db, teardown
+}
+
+func TestDBProductRepository_GetAll(t *testing.T) {
+    // Setup test database
+    db, teardown := setupTestDB(t)
+    defer teardown()
+    
+    // Create repository
+    repo := NewDBProductRepository(db)
     
     // Get all products
     products, err := repo.GetAll()
@@ -42,9 +84,13 @@ func TestInMemoryProductRepository_GetAll(t *testing.T) {
     }
 }
 
-func TestInMemoryProductRepository_GetByID(t *testing.T) {
-    // Create a new repository with some initial data
-    repo := NewInMemoryProductRepository()
+func TestDBProductRepository_GetByID(t *testing.T) {
+    // Setup test database
+    db, teardown := setupTestDB(t)
+    defer teardown()
+    
+    // Create repository
+    repo := NewDBProductRepository(db)
     
     // Test cases
     testCases := []struct {
@@ -95,9 +141,13 @@ func TestInMemoryProductRepository_GetByID(t *testing.T) {
     }
 }
 
-func TestInMemoryProductRepository_Create(t *testing.T) {
-    // Create a new repository
-    repo := NewInMemoryProductRepository()
+func TestDBProductRepository_Create(t *testing.T) {
+    // Setup test database
+    db, teardown := setupTestDB(t)
+    defer teardown()
+    
+    // Create repository
+    repo := NewDBProductRepository(db)
     
     // Create a new product
     newProduct := models.Product{
@@ -128,16 +178,20 @@ func TestInMemoryProductRepository_Create(t *testing.T) {
         t.Errorf("Expected Price %.2f, got %.2f", newProduct.Price, product.Price)
     }
     
-    // Test creating product with existing ID
+    // Test creating product with existing ID (should fail due to PRIMARY KEY constraint)
     err = repo.Create(models.Product{ID: "1", Name: "Duplicate", Price: 10.99})
     if err == nil {
         t.Error("Expected error when creating product with duplicate ID, but got none")
     }
 }
 
-func TestInMemoryProductRepository_Update(t *testing.T) {
-    // Create a new repository
-    repo := NewInMemoryProductRepository()
+func TestDBProductRepository_Update(t *testing.T) {
+    // Setup test database
+    db, teardown := setupTestDB(t)
+    defer teardown()
+    
+    // Create repository
+    repo := NewDBProductRepository(db)
     
     // Update an existing product
     updatedProduct := models.Product{
@@ -171,9 +225,13 @@ func TestInMemoryProductRepository_Update(t *testing.T) {
     }
 }
 
-func TestInMemoryProductRepository_Delete(t *testing.T) {
-    // Create a new repository
-    repo := NewInMemoryProductRepository()
+func TestDBProductRepository_Delete(t *testing.T) {
+    // Setup test database
+    db, teardown := setupTestDB(t)
+    defer teardown()
+    
+    // Create repository
+    repo := NewDBProductRepository(db)
     
     // Delete an existing product
     err := repo.Delete("1")
