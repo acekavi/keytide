@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	config "github.com/acekavi/keytide/configs"
+	"github.com/acekavi/keytide/config"
 	"github.com/acekavi/keytide/internal/database"
 	"github.com/acekavi/keytide/internal/handlers"
 	"github.com/acekavi/keytide/internal/repository"
