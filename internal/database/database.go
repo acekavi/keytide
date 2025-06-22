@@ -4,22 +4,30 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
-// NewSQLiteDB creates and returns a new SQLite database connection
-func NewSQLiteDB(dbPath string) (*sql.DB, error) {
-    // Ensure directory exists
-    dir := filepath.Dir(dbPath)
-    if err := os.MkdirAll(dir, 0755); err != nil {
-        return nil, fmt.Errorf("failed to create database directory: %w", err)
-    }
+// DBConfig holds database configuration
+type DBConfig struct {
+    Host     string
+    Port     string
+    User     string
+    Password string
+    DBName   string
+    SSLMode  string
+}
+
+// NewPostgresDB creates and returns a new PostgreSQL database connection
+func NewPostgresDB(config DBConfig) (*sql.DB, error) {
+    // Build connection string
+    connStr := fmt.Sprintf(
+        "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+        config.Host, config.Port, config.User, config.Password, config.DBName, config.SSLMode,
+    )
 
     // Open database connection
-    db, err := sql.Open("sqlite3", dbPath)
+    db, err := sql.Open("postgres", connStr)
     if err != nil {
         return nil, fmt.Errorf("failed to open database: %w", err)
     }
@@ -30,21 +38,26 @@ func NewSQLiteDB(dbPath string) (*sql.DB, error) {
     }
 
     // Initialize schema
-    if err := initSchema(db); err != nil {
+    if err := initPostgresSchema(db); err != nil {
         return nil, fmt.Errorf("failed to initialize schema: %w", err)
+    }
+
+    // Seed with sample data if empty
+    if err := SeedData(db); err != nil {
+        log.Printf("Warning: Failed to seed database: %v", err)
     }
 
     return db, nil
 }
 
 // initSchema creates necessary tables if they don't exist
-func initSchema(db *sql.DB) error {
+func initPostgresSchema(db *sql.DB) error {
     // Create products table
     _, err := db.Exec(`
         CREATE TABLE IF NOT EXISTS products (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            price REAL NOT NULL,
+            price NUMERIC(10,2) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -53,6 +66,6 @@ func initSchema(db *sql.DB) error {
         return err
     }
 
-    log.Println("Database schema initialized successfully")
+    log.Println("PostgreSQL schema initialized successfully")
     return nil
 }
