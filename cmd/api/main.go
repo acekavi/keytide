@@ -17,9 +17,9 @@ func main() {
     }
     logger.Initialize(env)
     defer logger.GetLogger().Sync()
-    
+
     logger.Info("Starting application", zap.String("environment", env))
-    
+
     // Initialize database
     dbPath := filepath.Join("data", "keytide.db")
     db, err := database.NewSQLiteDB(dbPath)
@@ -28,6 +28,4 @@ func main() {
     }
     defer db.Close()
     logger.Info("Database connected successfully", zap.String("path", dbPath))
-    
-    // Rest of your main function...
 }
