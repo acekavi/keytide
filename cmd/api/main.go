@@ -9,6 +9,7 @@ import (
 	"github.com/acekavi/keytide/internal/database"
 	"github.com/acekavi/keytide/internal/handlers"
 	"github.com/acekavi/keytide/internal/repository"
+	"github.com/acekavi/keytide/pkg/routes"
 	"github.com/gorilla/mux"
 )
 
@@ -46,11 +47,7 @@ func main() {
     r := mux.NewRouter()
 
     // Register routes
-    r.HandleFunc("/products", productHandler.GetProducts).Methods("GET")
-    r.HandleFunc("/products/{id}", productHandler.GetProduct).Methods("GET")
-    r.HandleFunc("/products", productHandler.CreateProduct).Methods("POST")
-    r.HandleFunc("/products/{id}", productHandler.UpdateProduct).Methods("PUT")
-    r.HandleFunc("/products/{id}", productHandler.DeleteProduct).Methods("DELETE")
+    routes.RegisterRoutes(r, productHandler)
 
     // Start server
     log.Printf("Server starting on :%s", cfg.Server.Port)

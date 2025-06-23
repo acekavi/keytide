@@ -32,7 +32,7 @@ type ServerConfig struct {
 // LoadConfig loads configuration from environment variables
 func LoadConfig() AppConfig {
     // Load environment from file
-    envPath := filepath.Join("configs", "app.env")
+    envPath := filepath.Join("config", "app.env")
     if err := godotenv.Load(envPath); err != nil {
         log.Printf("Warning: Could not load env file from %s: %v", envPath, err)
     } else {
