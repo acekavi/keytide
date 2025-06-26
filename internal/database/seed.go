@@ -1,13 +1,14 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // SeedData adds initial data to the database if it's empty
-func SeedData(db *sql.DB) error {
+func SeedData(db *sqlx.DB) error {
     // Check if products table is empty
     var count int
     err := db.QueryRow("SELECT COUNT(*) FROM products").Scan(&count)

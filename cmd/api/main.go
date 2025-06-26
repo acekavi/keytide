@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
@@ -11,13 +10,14 @@ import (
 	"github.com/acekavi/keytide/internal/repository"
 	"github.com/acekavi/keytide/pkg/routes"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 )
 
 func main() {
     // Load configuration
     cfg := config.LoadConfig()
 
-    var db *sql.DB
+    var db *sqlx.DB
     var err error
 
     dbConfig := database.DBConfig{

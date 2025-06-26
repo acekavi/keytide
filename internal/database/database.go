@@ -1,10 +1,10 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -19,7 +19,7 @@ type DBConfig struct {
 }
 
 // NewPostgresDB creates and returns a new PostgreSQL database connection
-func NewPostgresDB(config DBConfig) (*sql.DB, error) {
+func NewPostgresDB(config DBConfig) (*sqlx.DB, error) {
     // Build connection string
     connStr := fmt.Sprintf(
         "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -27,7 +27,7 @@ func NewPostgresDB(config DBConfig) (*sql.DB, error) {
     )
 
     // Open database connection
-    db, err := sql.Open("postgres", connStr)
+    db, err := sqlx.Connect("postgres", connStr)
     if err != nil {
         return nil, fmt.Errorf("failed to open database: %w", err)
     }
@@ -51,7 +51,7 @@ func NewPostgresDB(config DBConfig) (*sql.DB, error) {
 }
 
 // initSchema creates necessary tables if they don't exist
-func initPostgresSchema(db *sql.DB) error {
+func initPostgresSchema(db *sqlx.DB) error {
     // Create products table
     _, err := db.Exec(`
         CREATE TABLE IF NOT EXISTS products (

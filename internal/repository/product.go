@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/acekavi/keytide/internal/models"
+	"github.com/jmoiron/sqlx"
 )
 
 // ProductRepository defines methods for product data access
@@ -19,11 +20,11 @@ type ProductRepository interface {
 
 // DBProductRepository implements ProductRepository with a database
 type DBProductRepository struct {
-    db *sql.DB
+    db *sqlx.DB
 }
 
 // NewDBProductRepository creates a new database product repository
-func NewDBProductRepository(db *sql.DB) *DBProductRepository {
+func NewDBProductRepository(db *sqlx.DB) *DBProductRepository {
     return &DBProductRepository{
         db: db,
     }
