@@ -1,5 +1,12 @@
 ## 🔐 Project Name: Keytide
 
+> **Status: scaffold.** What is implemented today is an HTTP server, one
+> product endpoint, a logging middleware and an auth middleware that fails
+> closed pending a real token verifier. gRPC, Kafka, RBAC, OAuth2, token
+> revocation and audit trails are described below as intent, not as status —
+> none of them are started. Everything under "Core Features" should be read
+> as a roadmap.
+
 ### Description:
 
 Keytide is a plug-and-play Identity and Access Management (IAM) microservice designed for modern web applications. Built with Go, gRPC, and Kafka, it provides a high-performance, scalable, and secure platform for managing authentication, authorization, and user identity.
